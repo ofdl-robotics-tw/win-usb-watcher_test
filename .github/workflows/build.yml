@@ -1,0 +1,66 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MSYS2 (MinGW32)
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW32
+          install: mingw-w64-i686-gcc
+          update: false
+
+      - name: Build
+        shell: msys2 {0}
+        run: |
+          mkdir -p build
+
+          # usb_watcher.exe — no console window, XP compatible
+          gcc -o build/usb_watcher.exe src/usb_watcher.c \
+              -lsetupapi -luser32 \
+              -mwindows -m32 -march=i486 \
+              -static-libgcc -static \
+              -D_WIN32_WINNT=0x0501
+
+          # test_watcher.exe — console app
+          gcc -o build/test_watcher.exe src/test_watcher.c \
+              -m32 -march=i486 \
+              -static-libgcc -static \
+              -D_WIN32_WINNT=0x0501
+
+          # debug_scan.exe — console app
+          gcc -o build/debug_scan.exe src/debug_scan.c \
+              -lsetupapi \
+              -m32 -march=i486 \
+              -static-libgcc -static \
+              -D_WIN32_WINNT=0x0501
+
+      - name: Verify DLL dependencies
+        shell: msys2 {0}
+        run: |
+          echo "=== usb_watcher.exe ==="
+          objdump -p build/usb_watcher.exe | grep "DLL Name"
+          echo "=== test_watcher.exe ==="
+          objdump -p build/test_watcher.exe | grep "DLL Name"
+          echo "=== debug_scan.exe ==="
+          objdump -p build/debug_scan.exe | grep "DLL Name"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: usb-watcher-win32
+          path: build/*.exe

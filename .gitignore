@@ -1,0 +1,19 @@
+# Compiled binaries
+*.exe
+*.obj
+*.o
+*.pdb
+
+# MSVC artifacts
+*.ilk
+*.exp
+*.lib
+
+# Build output folders
+build/
+bin/
+
+# Editor
+.vscode/
+*.suo
+*.user
