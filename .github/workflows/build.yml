@@ -30,7 +30,8 @@ jobs:
           mkdir -p build
 
           # usb_watcher.exe — no console window, XP compatible
-          gcc -o build/usb_watcher.exe src/usb_watcher.c \
+          windres usb_watcher.rc -o usb_watcher_res.o
+          gcc -o build/usb_watcher.exe src/usb_watcher.c src/usb_watcher_res.o \
               -lsetupapi -luser32 \
               -mwindows -m32 -march=i486 \
               -static-libgcc -static \
